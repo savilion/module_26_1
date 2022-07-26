@@ -6,7 +6,7 @@
 
 class Player
 {
-    class TrackList
+    class Track
     {
         std::string nameTrack{};
         std::time_t dateCreationTrack{};
@@ -36,78 +36,97 @@ class Player
     bool pauseKey = false;
     int currentTrack{};
 
-    std::vector<TrackList> trackList;
+    std::vector<Track> trackList;
 
 public:
 
-    void setAddTrack(int value)
+    void setAddTrack()
     {
         std::srand(std::time(nullptr));
+        int numTrack;
+        auto *tmpTrack = new Track;
 
-        auto *tmpTrack = new TrackList;
+        std::cout << "How many tracks to add to the player: ";
+        std::cin >> numTrack;
 
-        for (int i = 0; i < value; ++i)
+        for (int i = 0; i < numTrack; ++i)
         {
             std::string name = "Track#" + std::to_string(i);
             std::time_t now = std::time(nullptr);
             int duration = rand() % 85 + 100;
-
             tmpTrack->setField(name, now, duration);
             trackList.push_back(*tmpTrack);
         }
         delete tmpTrack;
     }
 
-    void showTrackList(Player* player)
+    void showTrackList()
     {
-        for (int i = 0; i < player->trackList.size(); ++i)
+        for (int i = 0; i < trackList.size(); ++i)
         {
-            std::cout << i << ". " << player->trackList[i].getNameTrack() << std::endl;
+            std::cout << i << ". " << trackList[i].getNameTrack() << std::endl;
         }
     }
-    void showTrackInfo(Player* player, int value)
+    void showTrackInfo(int value)
     {
-        std::time_t tmp = player->trackList[value].getDateCreationTrack();
+        std::time_t tmp = trackList[value].getDateCreationTrack();
         std::tm* local = std::localtime(&tmp);
         std::cout << "Track info: " << std::endl;
-        std::cout << "Track name: " << player->trackList[value].getNameTrack() << ". Date created: " << std::put_time(local, "%Y/%m/%d %H:%M:%S") << ". Duration: " << player->trackList[value].getDurationTrack() << " sec" << std::endl;
+        std::cout << "Track name: " << trackList[value].getNameTrack() << ". Date created: " << std::put_time(local, "%Y/%m/%d %H:%M:%S") << ". Duration: " << trackList[value].getDurationTrack() << " sec" << std::endl;
     }
-    void trackPlay(int value)
+    void playTrack(int value)
     {
+        playbackKey = true;
+        currentTrack = value;
+        std::cout << "Play " << currentTrack << " track" << std::endl;
+        showTrackInfo(value);
+    }
+    void keyPlay()
+    {
+        int value;
         if (!playbackKey)
         {
-            playbackKey = true;
-            currentTrack = value;
-            std::cout << "Play " << value << " track" << std::endl;
+            showTrackList();
+            std::cout << "Enter the track number: ";
+            std::cin >> value;
+            playTrack(value);
+        }
+        else if (playbackKey && !pauseKey)
+        {
+            std::cout << "The track is already playing." << std::endl;
+        }
+        else if (playbackKey && pauseKey)
+        {
+            std::cout << "Resume playback." << std::endl;
+            pauseKey = false;
         }
     }
-    void trackPause()
+    void keyPause()
     {
-        if (!pauseKey)
+        if (!pauseKey && playbackKey)
         {
             pauseKey = true;
             std::cout << "Track " << currentTrack << " is pause." << std::endl;
         }
-        else if (playbackKey)
+        else if (!playbackKey)
         {
-            pauseKey = false;
+            std::cout << "Nothing is being played" << std::endl;
         }
     }
-    bool getPlayback()
+    void keyNextTrack()
     {
-        return playbackKey;
-    }
-    bool getPause()
-    {
-        return pauseKey;
-    }
-    int getTrackNumber()
-    {
-        return trackList.size();
-    }
-    void setKeyStop()
-    {
-        playbackKey = false;
+        std::srand(std::time(nullptr));
+        int nextTrack = rand()%trackList.size();
         pauseKey = false;
+        playbackKey = false;
+        playTrack(nextTrack);
+    }
+    void keyStop()
+    {
+        if (playbackKey)
+        {
+            playbackKey = false;
+            std::cout << "Playback stopped." << std::endl;
+        }
     }
 };
